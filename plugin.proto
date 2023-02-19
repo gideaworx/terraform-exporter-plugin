@@ -1,0 +1,42 @@
+syntax = "proto3";
+package proto;
+
+option go_package = "github.com/gideaworx/tf-exporter/proto";
+
+message ExportRequest {
+  string OutputDirectory = 1;
+  bool SkipProviderOutput = 2;
+  repeated string PluginArgs = 3;
+}
+
+message ImportDirective {
+  string Resource = 1;
+  string Name = 2;
+  string ID = 3;
+}
+
+message PluginInfo {
+  message PluginVersion {
+    uint64 Major = 1;
+    uint64 Minor = 2;
+    uint64 Patch = 3;
+    optional string Pre = 4;
+    optional string BuildMetadata = 5;
+  }
+
+  string Name = 1;
+  string Description = 2;
+  string Summary = 3;
+  PluginVersion Version = 4;
+}
+
+message ExportResponse {
+  repeated ImportDirective Directives = 1;
+}
+
+message Empty {}
+
+service AnnotatedExportPlugin {
+  rpc Export(ExportRequest) returns (ExportResponse) {}
+  rpc Info(Empty) returns (PluginInfo) {}
+}
