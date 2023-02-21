@@ -3,7 +3,7 @@ package plugin
 import (
 	"context"
 
-	"github.com/gideaworx/terraform-exporter-plugin/proto"
+	"github.com/gideaworx/terraform-exporter-plugin/go-plugin/proto"
 	"github.com/hashicorp/go-plugin"
 	"google.golang.org/grpc"
 )

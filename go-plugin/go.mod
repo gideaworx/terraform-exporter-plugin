@@ -1,4 +1,4 @@
-module github.com/gideaworx/terraform-exporter-plugin
+module github.com/gideaworx/terraform-exporter-plugin/go-plugin
 
 go 1.19
 
