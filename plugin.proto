@@ -15,19 +15,24 @@ message ImportDirective {
   string ID = 3;
 }
 
-message PluginInfo {
-  message PluginVersion {
-    uint64 Major = 1;
-    uint64 Minor = 2;
-    uint64 Patch = 3;
-    optional string Pre = 4;
-    optional string BuildMetadata = 5;
-  }
+message Version {
+  uint64 Major = 1;
+  uint64 Minor = 2;
+  uint64 Patch = 3;
+  optional string Pre = 4;
+  optional string BuildMetadata = 5;
+}
 
+message CommandInfo {
   string Name = 1;
   string Description = 2;
   string Summary = 3;
-  PluginVersion Version = 4;
+  Version Version = 4;
+}
+
+message PluginInfo {
+  Version Version = 1;
+  repeated CommandInfo Provides = 2;
 }
 
 message ExportResponse {
@@ -36,7 +41,23 @@ message ExportResponse {
 
 message Empty {}
 
-service AnnotatedExportPlugin {
+message SingleString {
+  string Value = 1;
+}
+
+message PluginRequest {
+  string Name = 1;
+  ExportRequest Request = 2;
+}
+
+service ExportCommand {
   rpc Export(ExportRequest) returns (ExportResponse) {}
+  rpc Info(Empty) returns (CommandInfo) {}
+  rpc Help(Empty) returns (SingleString) {}
+}
+
+service ExportPlugin {
+  rpc Export(PluginRequest) returns (ExportResponse) {}
+  rpc Help(SingleString) returns (SingleString) {}
   rpc Info(Empty) returns (PluginInfo) {}
 }

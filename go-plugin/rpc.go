@@ -10,9 +10,14 @@ type rpcPluginClient struct {
 	client *rpc.Client
 }
 
-func (p *rpcPluginClient) Export(request ExportRequest) (ExportResponse, error) {
-	resp := ExportResponse{}
-	err := p.client.Call("Plugin.Export", request, &resp)
+type exportPluginRequest struct {
+	name    string
+	request ExportRequest
+}
+
+func (p *rpcPluginClient) Export(name string, request ExportRequest) (ExportResponse, error) {
+	var resp ExportResponse
+	err := p.client.Call("Plugin.Export", exportPluginRequest{name, request}, &resp)
 	return resp, err
 }
 
@@ -22,13 +27,19 @@ func (p *rpcPluginClient) Info() (PluginInformation, error) {
 	return info, err
 }
 
-type rpcPluginServer struct {
-	Impl AnnotatedPlugin
+func (p *rpcPluginClient) Help(name string) (string, error) {
+	var resp string
+	err := p.client.Call("Plugin.Help", resp, &resp)
+	return resp, err
 }
 
-func (p *rpcPluginServer) Export(args ExportRequest, resp *ExportResponse) error {
+type rpcPluginServer struct {
+	Impl ExportPlugin
+}
+
+func (p *rpcPluginServer) Export(r exportPluginRequest, resp *ExportResponse) error {
 	var err error
-	*resp, err = p.Impl.Export(args)
+	*resp, err = p.Impl.Export(r.name, r.request)
 	return err
 }
 
@@ -38,8 +49,14 @@ func (p *rpcPluginServer) Info(_ any, resp *PluginInformation) error {
 	return err
 }
 
+func (p *rpcPluginServer) Help(name string, resp *string) error {
+	var err error
+	*resp, err = p.Impl.Help(name)
+	return err
+}
+
 type rpcPluginImpl struct {
-	Impl AnnotatedPlugin
+	Impl ExportPlugin
 }
 
 func (p *rpcPluginImpl) Server(*plugin.MuxBroker) (any, error) {

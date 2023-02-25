@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"context"
+	"errors"
 
 	"github.com/gideaworx/terraform-exporter-plugin/go-plugin/proto"
 	"github.com/hashicorp/go-plugin"
@@ -9,7 +10,7 @@ import (
 )
 
 type grpcPluginClient struct {
-	client proto.AnnotatedExportPluginClient
+	client proto.ExportPluginClient
 }
 
 func (g *grpcPluginClient) Info() (PluginInformation, error) {
@@ -18,25 +19,35 @@ func (g *grpcPluginClient) Info() (PluginInformation, error) {
 		return PluginInformation{}, err
 	}
 
-	return PluginInformation{
-		Name:        resp.GetName(),
-		Description: resp.GetDescription(),
-		Summary:     resp.GetSummary(),
-		Version: PluginVersion{
-			Major:         resp.GetVersion().GetMajor(),
-			Minor:         resp.GetVersion().GetMinor(),
-			Patch:         resp.GetVersion().GetPatch(),
-			Pre:           resp.GetVersion().GetPre(),
-			BuildMetadata: resp.GetVersion().GetBuildMetadata(),
-		},
-	}, nil
+	info := PluginInformation{
+		Version:  FromProtoVersion(resp.GetVersion()),
+		Provides: make([]CommandInfo, 0, len(resp.GetProvides())),
+	}
+
+	for _, protoProvides := range resp.GetProvides() {
+		if protoProvides == nil {
+			continue
+		}
+
+		info.Provides = append(info.Provides, CommandInfo{
+			Name:        protoProvides.GetName(),
+			Description: protoProvides.GetDescription(),
+			Summary:     protoProvides.GetSummary(),
+			Version:     FromProtoVersion(protoProvides.GetVersion()),
+		})
+	}
+
+	return info, nil
 }
 
-func (g *grpcPluginClient) Export(request ExportRequest) (ExportResponse, error) {
-	resp, err := g.client.Export(context.Background(), &proto.ExportRequest{
-		OutputDirectory:    request.OutputDirectory,
-		SkipProviderOutput: request.SkipProviderOutput,
-		PluginArgs:         request.PluginArgs,
+func (g *grpcPluginClient) Export(name string, request ExportRequest) (ExportResponse, error) {
+	resp, err := g.client.Export(context.Background(), &proto.PluginRequest{
+		Name: name,
+		Request: &proto.ExportRequest{
+			OutputDirectory:    request.OutputDirectory,
+			SkipProviderOutput: request.SkipProviderOutput,
+			PluginArgs:         request.PluginArgs,
+		},
 	})
 
 	if err != nil {
@@ -63,8 +74,8 @@ func (g *grpcPluginClient) Export(request ExportRequest) (ExportResponse, error)
 }
 
 type grpcPluginServer struct {
-	proto.UnimplementedAnnotatedExportPluginServer
-	Impl AnnotatedPlugin
+	proto.UnimplementedExportPluginServer
+	Impl ExportPlugin
 }
 
 func (g *grpcPluginServer) Info(context.Context, *proto.Empty) (*proto.PluginInfo, error) {
@@ -73,38 +84,34 @@ func (g *grpcPluginServer) Info(context.Context, *proto.Empty) (*proto.PluginInf
 		return nil, err
 	}
 
-	pversion := &proto.PluginInfo_PluginVersion{
-		Major:         info.Version.Major,
-		Minor:         info.Version.Minor,
-		Patch:         info.Version.Patch,
-		Pre:           nil,
-		BuildMetadata: nil,
+	pi := &proto.PluginInfo{
+		Version:  ToProtoVersion(info.Version),
+		Provides: make([]*proto.CommandInfo, 0, len(info.Provides)),
 	}
 
-	if info.Version.Pre != "" {
-		pversion.Pre = &info.Version.Pre
+	for _, ci := range info.Provides {
+		pi.Provides = append(pi.Provides, &proto.CommandInfo{
+			Name:        ci.Name,
+			Description: ci.Description,
+			Summary:     ci.Summary,
+			Version:     ToProtoVersion(ci.Version),
+		})
 	}
 
-	if info.Version.BuildMetadata != "" {
-		pversion.BuildMetadata = &info.Version.BuildMetadata
-	}
-
-	return &proto.PluginInfo{
-		Name:        info.Name,
-		Description: info.Description,
-		Summary:     info.Summary,
-		Version:     pversion,
-	}, nil
+	return pi, nil
 }
 
-func (g *grpcPluginServer) Export(_ context.Context, req *proto.ExportRequest) (*proto.ExportResponse, error) {
+func (g *grpcPluginServer) Export(_ context.Context, req *proto.PluginRequest) (*proto.ExportResponse, error) {
+	if req == nil || req.Name == "" || req.Request == nil {
+		return nil, errors.New("invalid request")
+	}
 	realRequest := ExportRequest{
-		OutputDirectory:    req.OutputDirectory,
-		SkipProviderOutput: req.SkipProviderOutput,
-		PluginArgs:         req.PluginArgs,
+		OutputDirectory:    req.Request.OutputDirectory,
+		SkipProviderOutput: req.Request.SkipProviderOutput,
+		PluginArgs:         req.Request.PluginArgs,
 	}
 
-	realResponse, err := g.Impl.Export(realRequest)
+	realResponse, err := g.Impl.Export(req.Name, realRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -124,16 +131,29 @@ func (g *grpcPluginServer) Export(_ context.Context, req *proto.ExportRequest) (
 	return protoResponse, nil
 }
 
+func (g *grpcPluginServer) Help(_ context.Context, req *proto.SingleString) (*proto.SingleString, error) {
+	if req == nil {
+		return nil, errors.New("invalid request")
+	}
+
+	realResponse, err := g.Impl.Help(req.GetValue())
+	if err != nil {
+		return nil, err
+	}
+
+	return &proto.SingleString{Value: realResponse}, nil
+}
+
 type grpcPluginImpl struct {
 	plugin.Plugin
-	Impl AnnotatedPlugin
+	Impl ExportPlugin
 }
 
 func (p *grpcPluginImpl) GRPCServer(_ *plugin.GRPCBroker, s *grpc.Server) error {
-	proto.RegisterAnnotatedExportPluginServer(s, &grpcPluginServer{Impl: p.Impl})
+	proto.RegisterExportPluginServer(s, &grpcPluginServer{Impl: p.Impl})
 	return nil
 }
 
 func (p *grpcPluginImpl) GRPCClient(_ context.Context, _ *plugin.GRPCBroker, c *grpc.ClientConn) (any, error) {
-	return &grpcPluginClient{client: proto.NewAnnotatedExportPluginClient(c)}, nil
+	return &grpcPluginClient{client: proto.NewExportPluginClient(c)}, nil
 }
