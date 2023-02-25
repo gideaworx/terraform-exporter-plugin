@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/blang/semver/v4"
 	"github.com/hashicorp/go-plugin"
@@ -104,4 +105,21 @@ type ExportResponse struct {
 var HandshakeConfig = plugin.HandshakeConfig{
 	MagicCookieKey:   "TF_EXPORTER",
 	MagicCookieValue: "exporter-plugin",
+}
+
+func FromSemver(s semver.Version) PluginVersion {
+	v := PluginVersion{
+		Major:         s.Major,
+		Minor:         s.Minor,
+		Patch:         s.Patch,
+		BuildMetadata: strings.Join(s.Build, "."),
+	}
+
+	prestr := make([]string, len(s.Pre))
+	for i := range s.Pre {
+		prestr[i] = s.Pre[i].String()
+	}
+
+	v.Pre = strings.Join(prestr, "-")
+	return v
 }
