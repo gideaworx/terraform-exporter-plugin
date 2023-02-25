@@ -62,10 +62,10 @@ func NewPluginClient(pluginExecutable string, logger hclog.Logger) (*plugin.Clie
 		HandshakeConfig: HandshakeConfig,
 		VersionedPlugins: map[int]plugin.PluginSet{
 			int(RPCProtocol): {
-				"plugin": &rpcPluginImpl{},
+				"plugin": &RPCExportPlugin{},
 			},
 			int(GRPCProtocol): {
-				"plugin": &grpcPluginImpl{},
+				"plugin": &GRPCExportPlugin{},
 			},
 		},
 		AllowedProtocols: []plugin.Protocol{plugin.ProtocolNetRPC, plugin.ProtocolGRPC},

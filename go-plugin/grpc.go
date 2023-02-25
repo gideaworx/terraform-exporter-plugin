@@ -144,16 +144,16 @@ func (g *grpcPluginServer) Help(_ context.Context, req *proto.SingleString) (*pr
 	return &proto.SingleString{Value: realResponse}, nil
 }
 
-type grpcPluginImpl struct {
+type GRPCExportPlugin struct {
 	plugin.Plugin
 	Impl ExportPlugin
 }
 
-func (p *grpcPluginImpl) GRPCServer(_ *plugin.GRPCBroker, s *grpc.Server) error {
+func (p *GRPCExportPlugin) GRPCServer(_ *plugin.GRPCBroker, s *grpc.Server) error {
 	proto.RegisterExportPluginServer(s, &grpcPluginServer{Impl: p.Impl})
 	return nil
 }
 
-func (p *grpcPluginImpl) GRPCClient(_ context.Context, _ *plugin.GRPCBroker, c *grpc.ClientConn) (any, error) {
+func (p *GRPCExportPlugin) GRPCClient(_ context.Context, _ *plugin.GRPCBroker, c *grpc.ClientConn) (any, error) {
 	return &grpcPluginClient{client: proto.NewExportPluginClient(c)}, nil
 }

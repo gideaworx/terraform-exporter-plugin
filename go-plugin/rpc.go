@@ -55,14 +55,14 @@ func (p *rpcPluginServer) Help(name string, resp *string) error {
 	return err
 }
 
-type rpcPluginImpl struct {
+type RPCExportPlugin struct {
 	Impl ExportPlugin
 }
 
-func (p *rpcPluginImpl) Server(*plugin.MuxBroker) (any, error) {
+func (p *RPCExportPlugin) Server(*plugin.MuxBroker) (any, error) {
 	return &rpcPluginServer{Impl: p.Impl}, nil
 }
 
-func (p rpcPluginImpl) Client(_ *plugin.MuxBroker, client *rpc.Client) (any, error) {
+func (p RPCExportPlugin) Client(_ *plugin.MuxBroker, client *rpc.Client) (any, error) {
 	return &rpcPluginClient{client: client}, nil
 }

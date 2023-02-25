@@ -16,7 +16,7 @@ func ServeCommands(version Version, protocol PluginProtocol, commands ...ExportC
 				MagicCookieValue: HandshakeConfig.MagicCookieValue,
 			},
 			Plugins: plugin.PluginSet{
-				"plugin": &grpcPluginImpl{Impl: impl},
+				"plugin": &GRPCExportPlugin{Impl: impl},
 			},
 			GRPCServer: plugin.DefaultGRPCServer,
 		})
@@ -28,7 +28,7 @@ func ServeCommands(version Version, protocol PluginProtocol, commands ...ExportC
 				MagicCookieValue: HandshakeConfig.MagicCookieValue,
 			},
 			Plugins: plugin.PluginSet{
-				"plugin": &rpcPluginImpl{Impl: impl},
+				"plugin": &RPCExportPlugin{Impl: impl},
 			},
 		})
 	}
