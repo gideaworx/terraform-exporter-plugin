@@ -1,0 +1,187 @@
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
+import java.time.ZoneOffset
+
+buildscript {
+  repositories {
+    maven {
+      url 'https://plugins.gradle.org/m2/'
+    }
+  }
+
+  ext {
+    projectVersion = '0.0.1-SNAPSHOT'
+
+    // https://github.com/grpc/grpc-java/releases
+    grpcVersion = '1.53.+'
+
+    // https://github.com/yidongnan/grpc-spring-boot-starter/releases
+    grpcBootStarterVersion = '2.14.0.RELEASE'
+
+    // https://github.com/spring-projects/spring-boot/releases
+    springBootVersion = '3.0.3'
+
+    javaxAnnotationApiVersion = '1.3.+'
+    lombokVersion = '1.18.+'
+
+    lombokPluginVersion = '6.6.2'
+    versioningPluginVersion = '2.15.1'
+    versionsPluginVersion = '0.45.0'
+  }
+}
+
+plugins {
+  id 'java'
+  id 'java-library'
+  id 'org.springframework.boot' version "${springBootVersion}" apply false
+  id 'net.nemerosa.versioning' version "${versioningPluginVersion}"
+  id 'io.spring.dependency-management' version '1.1.0'
+  id 'io.freefair.lombok' version "${lombokPluginVersion}" apply false
+  id 'com.github.ben-manes.versions' version "${versionsPluginVersion}"
+  id 'com.diffplug.spotless' version '6.13.0'
+}
+
+group = "io.gideaworx"
+version = projectVersion
+
+repositories {
+  mavenCentral()
+}
+
+sourceSets {
+  generated {
+
+  }
+  main {
+    compileClasspath += sourceSets.generated.output
+    runtimeClasspath += sourceSets.generated.output
+  }
+}
+
+if (hasProperty('buildScan')) {
+  buildScan {
+    termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+    termsOfServiceAgree = 'yes'
+  }
+}
+
+def buildTimeAndDate = OffsetDateTime.now(ZoneOffset.UTC)
+
+ext {
+  buildDate = DateTimeFormatter.ISO_LOCAL_DATE.format(buildTimeAndDate)
+  buildTime = DateTimeFormatter.ofPattern('HH:mm:ss.SSSZ').format(buildTimeAndDate)
+  buildRevision = versioning.info.commit
+}
+
+dependencies {
+  annotationProcessor "org.springframework.boot:spring-boot-autoconfigure-processor:${springBootVersion}"
+  annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}"
+  annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+  api "org.springframework.boot:spring-boot-starter:${springBootVersion}"
+	implementation "net.devh:grpc-server-spring-boot-starter:${grpcBootStarterVersion}"
+	compileOnly "org.projectlombok:lombok:${lombokVersion}"
+
+  generatedImplementation "io.grpc:grpc-netty-shaded:${grpcVersion}"
+	generatedImplementation "io.grpc:grpc-stub:${grpcVersion}"
+	generatedImplementation "io.grpc:grpc-protobuf:${grpcVersion}"
+	generatedImplementation "io.grpc:grpc-services:${grpcVersion}"
+  generatedImplementation "javax.annotation:javax.annotation-api:${javaxAnnotationApiVersion}"
+
+	// testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+}
+
+
+def targetDirName = "src/generated/java"
+def targetDir = file("${rootDir}/${targetDirName}")
+
+task cleanGeneratedProtoJava {
+  delete(files("${rootDir}/${targetDirName}/**"))
+}
+
+task ensureProtoJavaDir {
+  targetDir.mkdirs()
+}
+
+task generateProtoJava(type:Exec) {
+  dependsOn ensureProtoJavaDir
+
+  onlyIf {
+    !targetDir.exists() || !targetDir.list()
+  }
+
+  workingDir rootDir
+  commandLine "protoc", "--plugin=protoc-gen-grpc-java=/usr/local/bin/protoc-gen-grpc-java", "--java_out=${targetDirName}", "--grpc-java_out=${targetDirName}", "-I", "..", "../plugin.proto"
+}
+
+task regenerateProtoJava {
+  dependsOn cleanGeneratedProtoJava
+  dependsOn generateProtoJava
+}
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(17)
+  }
+}
+
+compileJava {
+  sourceCompatibility = JavaVersion.VERSION_17
+  targetCompatibility = JavaVersion.VERSION_17
+  options.encoding = 'UTF-8'
+  dependsOn generateProtoJava
+}
+
+compileJava.options*.compilerArgs = [
+  '-Xlint:all', '-Xlint:-processing', '-parameters'
+]
+
+spotless {
+  java {
+    target('src/main/**/*.java', 'src/test/**/*.java')
+    targetExclude('src/main/generated/**/*.java')
+    licenseHeaderFile rootProject.file('extra/spotless/mit-license.java')
+    removeUnusedImports()
+  }
+  format('misc') {
+    target('**/*.gradle', '**/*.md', '**/*.yml')
+    targetExclude('**/build/**/*.*')
+    trimTrailingWhitespace()
+    endWithNewline()
+  }
+}
+
+normalization {
+  runtimeClasspath {
+    metaInf{
+      ignoreAttribute('Build-Time')
+    }
+  }
+}
+
+// Copy LICENSE
+tasks.withType(Jar) {
+  from(rootDir) {
+    include 'LICENSE'
+    into 'META-INF'
+  }
+}
+
+// Generate MANIFEST.MF
+jar {
+  manifest {
+    attributes(
+      'Created-By': "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})".toString(),
+      'Build-Date': buildDate,
+      'Build-Time': buildTime,
+      'Built-OS': "${System.properties['os.name']}",
+      'Build-Revision': buildRevision,
+      'Specification-Title': project.name,
+      'Specification-Version': projectVersion,
+      'Specification-Vendor': 'Josh Ghiloni',
+      'Implementation-Title': project.name,
+      'Implementation-Version': projectVersion,
+      'Implementation-Vendor': 'Josh Ghiloni'
+    )
+  }
+}
