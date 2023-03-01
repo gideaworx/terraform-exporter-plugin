@@ -18,8 +18,20 @@ package io.gideaworx.terraformexporterplugin;
 
 import lombok.NonNull;
 
+/**
+ * a <a href="https://semver.org">Semver</a>-compatible version string.
+ */
 public record Version(long major, long minor, long patch, @NonNull String pre, @NonNull String buildMetadata) {
+  /**
+   * 0.0.0-dev
+   */
   public static final Version DEFAULT = new Version(0,0,0,"dev","");
+
+  /**
+   * Parses the version string according to Semver semantics
+   * @param vs the version string
+   * @return the version, or "0.0.0" if a parsing error occurs
+   */
   public static Version fromString(String vs) {
     String[] firstSplit = vs.split("-", 2);
 

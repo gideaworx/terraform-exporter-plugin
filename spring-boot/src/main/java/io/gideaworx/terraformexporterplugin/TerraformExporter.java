@@ -16,6 +16,27 @@
  */
 package io.gideaworx.terraformexporterplugin;
 
+/**
+ * Exports data from a data source and writes terraform HCL files
+ */
 public interface TerraformExporter {
-  public Iterable<ImportDirective> export(String outputDirectory, boolean skipOutputDirectory, Iterable<String> arguments);
+  /**
+   * Perform an export from a data source into HCL files. This should also write a
+   * terraform file defining the provider
+   * that will be used for writing data back to the data source in the future,
+   * unless <code>skipProviderOutput</code> is
+   * true (it is false by default).
+   * 
+   * @param outputDirectory    the directory into which HCL files should be
+   *                           written. To be idiomatic terraform, the files
+   *                           should all be output to the same directory
+   * @param skipProviderOutput if true, skip writing the provider definition file
+   * @param arguments          a list of {@link java.lang.String}. These will come
+   *                           from the CLI call, and can be considered like an
+   *                           argv array
+   * 
+   * @return a list of resources, names, and IDs exported
+   */
+  public Iterable<ImportDirective> export(String outputDirectory, boolean skipProviderOutput,
+      Iterable<String> arguments);
 }

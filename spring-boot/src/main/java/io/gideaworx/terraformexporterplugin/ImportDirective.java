@@ -18,5 +18,10 @@ package io.gideaworx.terraformexporterplugin;
 
 import lombok.NonNull;
 
+/**
+ * When read by the CLI, will output a line of the form
+ * 
+ * <code>terraform import "resource.name" "id"</code>
+ */
 public record ImportDirective(@NonNull String resource, @NonNull String name, @NonNull String id) {
 }

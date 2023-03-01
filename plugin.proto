@@ -1,7 +1,7 @@
 syntax = "proto3";
-package io.gideaworx.tfexportplugin;
+package plugin;
 
-option go_package = "github.com/gideaworx/tf-exporter/proto";
+option go_package = "github.com/gideaworx/terraform-exporter-plugin/go-plugin";
 option java_multiple_files = true;
 option java_package = "io.gideaworx.terraformexporterplugin.grpc";
 

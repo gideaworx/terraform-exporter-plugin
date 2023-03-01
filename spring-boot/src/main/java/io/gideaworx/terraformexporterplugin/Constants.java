@@ -16,16 +16,32 @@
  */
 package io.gideaworx.terraformexporterplugin;
 
+/**
+ * Constants used in the project
+ */
 public final class Constants {
+  /**
+   * Defined by the CLI, and must be kept in sync to work with the latest versions of the CLI
+   */
   public static final String MagicCookieKey = "TF_EXPORTER";
+
+  /**
+   * Defined by the CLI, and must be kept in sync to work with the latest versions of the CLI
+   */
   public static final String MagicCookieValue = "exporter-plugin";
 
-  public static final String MinPortHeader = "PLUGIN_MIN_PORT";
-  public static final String MaxPortHeader = "PLUGIN_MAX_PORT";
+  /**
+   * The environment variable where the CLI identifies the supported plugin versions
+   */
   public static final String AcceptedProtocolsHeader = "PLUGIN_PROTOCOL_VERSIONS";
 
+  /**
+   * The current version of the plugin protocol supported by the CLI
+   */
   public static final int PluginCoreProtocolVersion = 1;
-  public static final int PluginAppProtocolVersion = 3;
 
-  public static final String localhost = "127.0.0.1";
+  /**
+   * The current version of the app protocol provided by this plugin
+   */
+  public static final int PluginAppProtocolVersion = 3;
 }

@@ -16,6 +16,13 @@
  */
 package io.gideaworx.terraformexporterplugin;
 
+/**
+ * Provides command help to the CLI
+ */
 public interface ExportCommandHelp {
+  /**
+   * Explains the required plugin arguments provided to the export method
+   * @return
+   */
   public String help();
 }

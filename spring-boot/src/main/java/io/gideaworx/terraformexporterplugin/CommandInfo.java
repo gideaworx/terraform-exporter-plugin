@@ -18,6 +18,9 @@ package io.gideaworx.terraformexporterplugin;
 
 import lombok.NonNull;
 
+/**
+ * Represents info about a plugin command. Can be overridden in autoconfiguration
+ */
 public record CommandInfo(@NonNull String name, @NonNull String description, @NonNull String summary,
     @NonNull Version version) {
 }

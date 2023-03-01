@@ -36,7 +36,7 @@ plugins {
   id 'org.springframework.boot' version "${springBootVersion}" apply false
   id 'net.nemerosa.versioning' version "${versioningPluginVersion}"
   id 'io.spring.dependency-management' version '1.1.0'
-  id 'io.freefair.lombok' version "${lombokPluginVersion}" apply false
+  id 'io.freefair.lombok' version "${lombokPluginVersion}"
   id 'com.github.ben-manes.versions' version "${versionsPluginVersion}"
   id 'com.diffplug.spotless' version '6.13.0'
 }
@@ -184,4 +184,11 @@ jar {
       'Implementation-Vendor': 'Josh Ghiloni'
     )
   }
+}
+
+// generate javadoc
+javadoc {
+  dependsOn delombok
+  source = delombok
+  options.addBooleanOption('html5', true)
 }

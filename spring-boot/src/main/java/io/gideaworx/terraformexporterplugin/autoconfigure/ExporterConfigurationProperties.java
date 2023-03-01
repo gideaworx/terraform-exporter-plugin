@@ -27,12 +27,43 @@ import io.gideaworx.terraformexporterplugin.*;
 import java.util.Map;
 import org.springframework.core.convert.converter.Converter;
 
+/**
+ * These can be set via any standard Spring Boot application property-setting mechanisms.
+ */
 @Configuration
 @ConfigurationProperties(prefix = "terraform-exporter-plugin")
 @Data
 public class ExporterConfigurationProperties {
+  /**
+   * Can be set in either a string or object form. That is, you can set
+   * <pre>
+   * terraform-exporter-plugin:
+   *   version: "1.2.3"
+   * </pre>
+   * 
+   * or
+   * 
+   * <pre>
+   * terraform-exporter-plugin:
+   *   version:
+   *     major: 1
+   *     minor: 2
+   *     patch: 3
+   *     pre: "" # optional
+   *     buildMetadata: "" # optional
+   * </pre>
+   * 
+   * If not set, will default to <code>0.0.0-dev</code>
+   */
   private Version version;
   
+  /**
+   * For any commands not registered via {@link io.gideaworx.terraformexporterplugin.autoconfigure.Exporter.Command},
+   * info MUST be set here or via an <code>info</code> method. Information here will take precedence over either method
+   * of specifying a command's info in code. The name field will be ignored, and the key of this map must match a
+   * registered command's name (either its bean name or the name specified in its <code>@Command</code> annotation)
+   * for it to apply.
+   */
   private Map<String, CommandInfo> commands;
 
   @Component

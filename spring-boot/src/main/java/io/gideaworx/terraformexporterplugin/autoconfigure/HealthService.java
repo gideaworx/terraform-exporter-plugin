@@ -25,6 +25,10 @@ import io.grpc.health.v1.HealthGrpc.HealthImplBase;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 
+/**
+ * Implements the standard GRPC v1 health service, which is required by the terraform export CLI for plugins
+ * not written in Go.
+ */
 @ConditionalOnMissingBean
 @GrpcService
 public class HealthService extends HealthImplBase {
@@ -35,12 +39,18 @@ public class HealthService extends HealthImplBase {
     response = HealthCheckResponse.newBuilder().setStatus(ServingStatus.SERVING).build();
   }
 
+  /** 
+   * Reports that the plugin is currently serving requests
+   */
   @Override
   public void check(HealthCheckRequest request, StreamObserver<HealthCheckResponse> responseObserver) {
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
 
+  /** 
+   * Reports that the plugin is currently serving requests, but streaming
+   */
   @Override
   public void watch(HealthCheckRequest request, StreamObserver<HealthCheckResponse> responseObserver) {
     responseObserver.onNext(response);

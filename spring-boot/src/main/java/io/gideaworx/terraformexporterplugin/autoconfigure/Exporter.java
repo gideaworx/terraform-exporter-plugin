@@ -31,7 +31,30 @@ import io.gideaworx.terraformexporterplugin.*;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 
-public final class Exporter {
+/**
+ * A wrapper class for annotations used by the project.
+ */
+public abstract class Exporter {
+
+  /**
+   * A class annotated with <code>@Command</code> will be registered as a Spring
+   * bean capable of responding to terraform export CLI requests to export data.
+   * 
+   * To be an exporter, a class annotated with <code>@Command</code> must either
+   * a. Have a method annotated with <code>@{@link io.gideaworx.terraformexporterplugin.autoconfigure.Exporter.Export}</code>
+   *    that conforms to the signature <code>public {@link java.lang.Iterable}&lt;{@link io.gideaworx.terraformexporterplugin.ImportDirective}&gt; methodName({@link java.lang.String}, boolean, {@link java.lang.Iterable}&lt;{@link java.lang.String}&gt;)</code> and
+   * b. Have a method annotated with <code>@{@link io.gideaworx.terraformexporterplugin.autoconfigure.Exporter.Help}</code>
+   *    that conforms to the signature <code>public {@link java.lang.String} methodName()</code> OR
+   * c. Implement {@link io.gideaworx.terraformexporterplugin.TerraformExporter} and {@link io.gideaworx.terraformexporterplugin.ExportCommandHelp}
+   * 
+   * If you choose to register your command via more traditional methods, then you must use option C above.
+   * 
+   * The parameters on this annotation describe the command, which is used by the CLI. If you do not use this annotation, you must either implement a method
+   * that accepts no arguments and returns a {@link io.gideaworx.terraformexporterplugin.CommandInfo} or add configuration properties described in
+   * {@link io.gideaworx.terraformexporterplugin.autoconfigure.ExporterConfigurationProperties}
+   * 
+   * @see io.gideaworx.terraformexporterplugin.TerraformExporter
+   */
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
   @Documented
@@ -47,19 +70,27 @@ public final class Exporter {
     String summary() default "";
   }
 
+  /**
+   * Registers a method as an command's export method. To use this, the method annotated must be part of a class annotated with
+   * {@link io.gideaworx.terraformexporterplugin.autoconfigure.Exporter.Command}
+   */
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.RUNTIME)
   @Documented
   public @interface Export {
   }
 
+  /**
+   * Registers a method as an command's help method. To use this, the method annotated must be part of a class annotated with
+   * {@link io.gideaworx.terraformexporterplugin.autoconfigure.Exporter.Command}
+   */
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.RUNTIME)
   @Documented
   public @interface Help {
   }
 
-  interface CompleteExportCommand extends TerraformExporter, ExportCommandHelp {  
+  interface CompleteExportCommand extends TerraformExporter, ExportCommandHelp {
     public CommandInfo info();
   }
 
