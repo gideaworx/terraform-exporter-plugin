@@ -37,7 +37,7 @@ func NewExportCommandClient(cc grpc.ClientConnInterface) ExportCommandClient {
 
 func (c *exportCommandClient) Export(ctx context.Context, in *ExportRequest, opts ...grpc.CallOption) (*ExportResponse, error) {
 	out := new(ExportResponse)
-	err := c.cc.Invoke(ctx, "/proto.ExportCommand/Export", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/plugin.ExportCommand/Export", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (c *exportCommandClient) Export(ctx context.Context, in *ExportRequest, opt
 
 func (c *exportCommandClient) Info(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CommandInfo, error) {
 	out := new(CommandInfo)
-	err := c.cc.Invoke(ctx, "/proto.ExportCommand/Info", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/plugin.ExportCommand/Info", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (c *exportCommandClient) Info(ctx context.Context, in *Empty, opts ...grpc.
 
 func (c *exportCommandClient) Help(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*SingleString, error) {
 	out := new(SingleString)
-	err := c.cc.Invoke(ctx, "/proto.ExportCommand/Help", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/plugin.ExportCommand/Help", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func _ExportCommand_Export_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.ExportCommand/Export",
+		FullMethod: "/plugin.ExportCommand/Export",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ExportCommandServer).Export(ctx, req.(*ExportRequest))
@@ -126,7 +126,7 @@ func _ExportCommand_Info_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.ExportCommand/Info",
+		FullMethod: "/plugin.ExportCommand/Info",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ExportCommandServer).Info(ctx, req.(*Empty))
@@ -144,7 +144,7 @@ func _ExportCommand_Help_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.ExportCommand/Help",
+		FullMethod: "/plugin.ExportCommand/Help",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ExportCommandServer).Help(ctx, req.(*Empty))
@@ -156,7 +156,7 @@ func _ExportCommand_Help_Handler(srv interface{}, ctx context.Context, dec func(
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ExportCommand_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "proto.ExportCommand",
+	ServiceName: "plugin.ExportCommand",
 	HandlerType: (*ExportCommandServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -181,6 +181,7 @@ var ExportCommand_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ExportPluginClient interface {
 	Export(ctx context.Context, in *PluginRequest, opts ...grpc.CallOption) (*ExportResponse, error)
+	Help(ctx context.Context, in *SingleString, opts ...grpc.CallOption) (*SingleString, error)
 	Info(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*PluginInfo, error)
 }
 
@@ -194,7 +195,16 @@ func NewExportPluginClient(cc grpc.ClientConnInterface) ExportPluginClient {
 
 func (c *exportPluginClient) Export(ctx context.Context, in *PluginRequest, opts ...grpc.CallOption) (*ExportResponse, error) {
 	out := new(ExportResponse)
-	err := c.cc.Invoke(ctx, "/proto.ExportPlugin/Export", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/plugin.ExportPlugin/Export", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *exportPluginClient) Help(ctx context.Context, in *SingleString, opts ...grpc.CallOption) (*SingleString, error) {
+	out := new(SingleString)
+	err := c.cc.Invoke(ctx, "/plugin.ExportPlugin/Help", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +213,7 @@ func (c *exportPluginClient) Export(ctx context.Context, in *PluginRequest, opts
 
 func (c *exportPluginClient) Info(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*PluginInfo, error) {
 	out := new(PluginInfo)
-	err := c.cc.Invoke(ctx, "/proto.ExportPlugin/Info", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/plugin.ExportPlugin/Info", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -215,6 +225,7 @@ func (c *exportPluginClient) Info(ctx context.Context, in *Empty, opts ...grpc.C
 // for forward compatibility
 type ExportPluginServer interface {
 	Export(context.Context, *PluginRequest) (*ExportResponse, error)
+	Help(context.Context, *SingleString) (*SingleString, error)
 	Info(context.Context, *Empty) (*PluginInfo, error)
 	mustEmbedUnimplementedExportPluginServer()
 }
@@ -225,6 +236,9 @@ type UnimplementedExportPluginServer struct {
 
 func (UnimplementedExportPluginServer) Export(context.Context, *PluginRequest) (*ExportResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Export not implemented")
+}
+func (UnimplementedExportPluginServer) Help(context.Context, *SingleString) (*SingleString, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Help not implemented")
 }
 func (UnimplementedExportPluginServer) Info(context.Context, *Empty) (*PluginInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Info not implemented")
@@ -252,10 +266,28 @@ func _ExportPlugin_Export_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.ExportPlugin/Export",
+		FullMethod: "/plugin.ExportPlugin/Export",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ExportPluginServer).Export(ctx, req.(*PluginRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ExportPlugin_Help_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SingleString)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ExportPluginServer).Help(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/plugin.ExportPlugin/Help",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ExportPluginServer).Help(ctx, req.(*SingleString))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -270,7 +302,7 @@ func _ExportPlugin_Info_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.ExportPlugin/Info",
+		FullMethod: "/plugin.ExportPlugin/Info",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ExportPluginServer).Info(ctx, req.(*Empty))
@@ -282,12 +314,16 @@ func _ExportPlugin_Info_Handler(srv interface{}, ctx context.Context, dec func(i
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ExportPlugin_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "proto.ExportPlugin",
+	ServiceName: "plugin.ExportPlugin",
 	HandlerType: (*ExportPluginServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Export",
 			Handler:    _ExportPlugin_Export_Handler,
+		},
+		{
+			MethodName: "Help",
+			Handler:    _ExportPlugin_Help_Handler,
 		},
 		{
 			MethodName: "Info",

@@ -61,12 +61,24 @@ public abstract class Exporter {
   @Inherited
   @Component
   public @interface Command {
+    /**
+     * @return The version of the command
+     */
     String version() default "0.0.0-dev";
 
+    /**
+     * @return The name of the command
+     */
     String name() default "";
 
+    /**
+     * @return A short description of the command
+     */
     String description() default "";
 
+    /**
+     * @return A longer description of the command
+     */
     String summary() default "";
   }
 

@@ -1,6 +1,8 @@
 package plugin
 
 import (
+	"log"
+
 	"github.com/hashicorp/go-plugin"
 )
 
@@ -20,7 +22,7 @@ func ServeCommands(version Version, protocol PluginProtocol, commands ...ExportC
 			},
 			GRPCServer: plugin.DefaultGRPCServer,
 		})
-	default:
+	case RPCProtocol:
 		plugin.Serve(&plugin.ServeConfig{
 			HandshakeConfig: plugin.HandshakeConfig{
 				ProtocolVersion:  uint(RPCProtocol),
@@ -31,5 +33,7 @@ func ServeCommands(version Version, protocol PluginProtocol, commands ...ExportC
 				"plugin": &RPCExportPlugin{Impl: impl},
 			},
 		})
+	default:
+		log.Fatalf("unrecognized protocol %d", protocol)
 	}
 }
