@@ -143,6 +143,11 @@ func FromSemver(s semver.Version) Version {
 	return v
 }
 
+func FromString(s string) Version {
+	sv, _ := semver.ParseTolerant(s)
+	return FromSemver(sv)
+}
+
 func FromProtoVersion(p *proto.Version) Version {
 	if p == nil {
 		return Version{}
