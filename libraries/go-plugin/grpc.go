@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/gideaworx/terraform-exporter-plugin/go-plugin/proto"
+	"github.com/gideaworx/terraform-exporter-plugin/libraries/go-plugin/proto"
 	"github.com/hashicorp/go-plugin"
 	"google.golang.org/grpc"
 )

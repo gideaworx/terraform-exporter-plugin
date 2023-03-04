@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/blang/semver/v4"
-	"github.com/gideaworx/terraform-exporter-plugin/go-plugin/proto"
+	"github.com/gideaworx/terraform-exporter-plugin/libraries/go-plugin/proto"
 	"github.com/hashicorp/go-plugin"
 )
 
