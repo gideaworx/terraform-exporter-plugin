@@ -3,6 +3,8 @@ package shared
 import (
 	"bytes"
 	"flag"
+	"log"
+	"os"
 	"path/filepath"
 	"sync"
 
@@ -10,6 +12,20 @@ import (
 )
 
 var Version string = "0.0.1"
+
+const provider = `
+terraform {
+	required_providers {
+		local = {
+		source = "hashicorp/local"
+		version = "2.3.0"
+		}
+	}
+}
+
+provider "local" {
+}
+`
 
 type LocalRawFilesCommand struct {
 	helpText string
@@ -46,8 +62,12 @@ func (l *LocalRawFilesCommand) Export(request plugin.ExportRequest) (plugin.Expo
 					break
 				}
 
-				d, err := WriteHCL(sourceAbs, file, Contents, false, request.OutputDirectory)
+				d, err := writeHCL(sourceAbs, file, Contents, false, request.OutputDirectory)
 				wg.Done()
+				if err != nil {
+					log.Println(err)
+					break
+				}
 
 				lock.Lock()
 				directives = append(directives, d)
@@ -62,6 +82,10 @@ func (l *LocalRawFilesCommand) Export(request plugin.ExportRequest) (plugin.Expo
 
 	close(workQueue)
 	wg.Wait()
+
+	if !request.SkipProviderOutput {
+		os.WriteFile(filepath.Join(request.OutputDirectory, "provider.tf"), []byte(provider), 0o666)
+	}
 
 	return plugin.ExportResponse{
 		Directives: directives,

@@ -21,7 +21,7 @@ const (
 	ContentsBase64
 )
 
-func WriteHCL(sourceDir, sourceFile string, outputType OutputType, sensitive bool, outputDir string) (plugin.ImportDirective, error) {
+func writeHCL(sourceDir, sourceFile string, outputType OutputType, sensitive bool, outputDir string) (plugin.ImportDirective, error) {
 	hclwriter := hclwrite.NewEmptyFile()
 
 	contents, err := os.ReadFile(sourceFile)

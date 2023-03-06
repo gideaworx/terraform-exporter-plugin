@@ -14,7 +14,7 @@ type grpcPluginClient struct {
 }
 
 func (g *grpcPluginClient) Info() (PluginInformation, error) {
-	resp, err := g.client.Info(context.Background(), &proto.Empty{})
+	resp, err := g.client.Info(context.Background(), &proto.NoArgs{})
 	if err != nil {
 		return PluginInformation{}, err
 	}
@@ -78,7 +78,7 @@ type grpcPluginServer struct {
 	Impl ExportPlugin
 }
 
-func (g *grpcPluginServer) Info(context.Context, *proto.Empty) (*proto.PluginInfo, error) {
+func (g *grpcPluginServer) Info(context.Context, *proto.NoArgs) (*proto.PluginInfo, error) {
 	info, err := g.Impl.Info()
 	if err != nil {
 		return nil, err

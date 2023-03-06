@@ -41,7 +41,7 @@ message ExportResponse {
   repeated ImportDirective Directives = 1;
 }
 
-message Empty {}
+message NoArgs {}
 
 message SingleString {
   string Value = 1;
@@ -54,12 +54,12 @@ message PluginRequest {
 
 service ExportCommand {
   rpc Export(ExportRequest) returns (ExportResponse) {}
-  rpc Info(Empty) returns (CommandInfo) {}
-  rpc Help(Empty) returns (SingleString) {}
+  rpc Info(NoArgs) returns (CommandInfo) {}
+  rpc Help(NoArgs) returns (SingleString) {}
 }
 
 service ExportPlugin {
   rpc Export(PluginRequest) returns (ExportResponse) {}
   rpc Help(SingleString) returns (SingleString) {}
-  rpc Info(Empty) returns (PluginInfo) {}
+  rpc Info(NoArgs) returns (PluginInfo) {}
 }
