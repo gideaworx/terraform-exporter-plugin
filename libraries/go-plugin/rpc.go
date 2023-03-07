@@ -39,7 +39,7 @@ type rpcPluginServer struct {
 
 func (p *rpcPluginServer) Export(r exportPluginRequest, resp *ExportResponse) error {
 	var err error
-	*resp, err = p.Impl.Export(r.name, r.request)
+	*resp, err = p.Impl.Export(r.Name, r.Request)
 	return err
 }
 
