@@ -29,7 +29,7 @@ func (p *rpcPluginClient) Info() (PluginInformation, error) {
 
 func (p *rpcPluginClient) Help(name string) (string, error) {
 	var resp string
-	err := p.client.Call("Plugin.Help", resp, &resp)
+	err := p.client.Call("Plugin.Help", name, &resp)
 	return resp, err
 }
 
