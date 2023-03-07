@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/gideaworx/terraform-exporter-plugin/libraries/go-plugin/proto"
+	"github.com/gideaworx/terraform-exporter-plugin/go-plugin/proto"
 	"github.com/hashicorp/go-plugin"
 	"google.golang.org/grpc"
 )
@@ -40,7 +40,7 @@ func (g *grpcPluginClient) Info() (PluginInformation, error) {
 	return info, nil
 }
 
-func (g *grpcPluginClient) Export(name string, request ExportRequest) (ExportResponse, error) {
+func (g *grpcPluginClient) Export(name string, request ExportCommandRequest) (ExportResponse, error) {
 	resp, err := g.client.Export(context.Background(), &proto.PluginRequest{
 		Name: name,
 		Request: &proto.ExportRequest{
@@ -105,7 +105,7 @@ func (g *grpcPluginServer) Export(_ context.Context, req *proto.PluginRequest) (
 	if req == nil || req.Name == "" || req.Request == nil {
 		return nil, errors.New("invalid request")
 	}
-	realRequest := ExportRequest{
+	realRequest := ExportCommandRequest{
 		OutputDirectory:    req.Request.OutputDirectory,
 		SkipProviderOutput: req.Request.SkipProviderOutput,
 		PluginArgs:         req.Request.PluginArgs,

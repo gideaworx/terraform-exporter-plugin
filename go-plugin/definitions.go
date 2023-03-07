@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/blang/semver/v4"
-	"github.com/gideaworx/terraform-exporter-plugin/libraries/go-plugin/proto"
+	"github.com/gideaworx/terraform-exporter-plugin/go-plugin/proto"
 	"github.com/hashicorp/go-plugin"
 )
 
@@ -18,7 +18,7 @@ type CommandInfo struct {
 }
 
 type ExportCommand interface {
-	Export(ExportRequest) (ExportResponse, error)
+	Export(ExportCommandRequest) (ExportResponse, error)
 	Help() (string, error)
 	Info() (CommandInfo, error)
 }
@@ -30,7 +30,7 @@ type ExportPlugin interface {
 	// the local file system. The method returns a list of resource types, names,
 	// and IDs. These will be converted by the plugin host into a shell script
 	// that, when executed, will run terraform import on the resources in question
-	Export(string, ExportRequest) (ExportResponse, error)
+	Export(string, ExportCommandRequest) (ExportResponse, error)
 	Help(string) (string, error)
 	Info() (PluginInformation, error)
 }
@@ -86,17 +86,23 @@ type PluginInformation struct {
 	Provides []CommandInfo `toml:"provides"`
 }
 
-// ExportRequest is sent to the plugin to initiate processing.
+// ExportCommandRequest is sent to the a plugin's command to initiate processing.
 // Output files are expected to be written in OutputDirectory, preferably
 // without subdirectories. If SkipProviderOutput is false, a "provider.tf"
 // file should be written that initializes the terraform provider used to
 // manage the newly created files. PluginArgs are a subset of the original
 // command line args and can be considered the equivalent of os.Args[1:] if
 // the program were executed directly
-type ExportRequest struct {
+type ExportCommandRequest struct {
 	OutputDirectory    string
 	SkipProviderOutput bool
 	PluginArgs         []string
+}
+
+// ExportPluginResult is sent from the CLI to find a plugin's command and execute it
+type ExportPluginRequest struct {
+	Name    string
+	Request ExportCommandRequest
 }
 
 // ImportDirective represents a recently created resource that should be
@@ -201,7 +207,7 @@ func NewExportPlugin(version Version, commands ...ExportCommand) ExportPlugin {
 	return p
 }
 
-func (p *pluginImpl) Export(commandName string, request ExportRequest) (ExportResponse, error) {
+func (p *pluginImpl) Export(commandName string, request ExportCommandRequest) (ExportResponse, error) {
 	c, ok := p.commands[commandName]
 	if !ok {
 		return ExportResponse{}, fmt.Errorf("command %s not provided by this plugin", commandName)

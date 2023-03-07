@@ -10,14 +10,9 @@ type rpcPluginClient struct {
 	client *rpc.Client
 }
 
-type exportPluginRequest struct {
-	Name    string
-	Request ExportRequest
-}
-
-func (p *rpcPluginClient) Export(name string, request ExportRequest) (ExportResponse, error) {
+func (p *rpcPluginClient) Export(name string, request ExportCommandRequest) (ExportResponse, error) {
 	var resp ExportResponse
-	err := p.client.Call("Plugin.Export", exportPluginRequest{Name: name, Request: request}, &resp)
+	err := p.client.Call("Plugin.Export", ExportPluginRequest{Name: name, Request: request}, &resp)
 	return resp, err
 }
 
@@ -37,7 +32,7 @@ type rpcPluginServer struct {
 	Impl ExportPlugin
 }
 
-func (p *rpcPluginServer) Export(r exportPluginRequest, resp *ExportResponse) error {
+func (p *rpcPluginServer) Export(r ExportPluginRequest, resp *ExportResponse) error {
 	var err error
 	*resp, err = p.Impl.Export(r.Name, r.Request)
 	return err
