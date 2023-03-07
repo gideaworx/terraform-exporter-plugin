@@ -105,13 +105,16 @@ func (g *grpcPluginServer) Export(_ context.Context, req *proto.PluginRequest) (
 	if req == nil || req.Name == "" || req.Request == nil {
 		return nil, errors.New("invalid request")
 	}
-	realRequest := ExportCommandRequest{
-		OutputDirectory:    req.Request.OutputDirectory,
-		SkipProviderOutput: req.Request.SkipProviderOutput,
-		PluginArgs:         req.Request.PluginArgs,
+	realRequest := ExportPluginRequest{
+		Name: req.Name,
+		Request: ExportCommandRequest{
+			OutputDirectory:    req.Request.OutputDirectory,
+			SkipProviderOutput: req.Request.SkipProviderOutput,
+			PluginArgs:         req.Request.PluginArgs,
+		},
 	}
 
-	realResponse, err := g.Impl.Export(req.Name, realRequest)
+	realResponse, err := g.Impl.Export(realRequest)
 	if err != nil {
 		return nil, err
 	}

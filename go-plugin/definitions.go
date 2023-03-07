@@ -30,7 +30,7 @@ type ExportPlugin interface {
 	// the local file system. The method returns a list of resource types, names,
 	// and IDs. These will be converted by the plugin host into a shell script
 	// that, when executed, will run terraform import on the resources in question
-	Export(string, ExportCommandRequest) (ExportResponse, error)
+	Export(ExportPluginRequest) (ExportResponse, error)
 	Help(string) (string, error)
 	Info() (PluginInformation, error)
 }
@@ -207,13 +207,14 @@ func NewExportPlugin(version Version, commands ...ExportCommand) ExportPlugin {
 	return p
 }
 
-func (p *pluginImpl) Export(commandName string, request ExportCommandRequest) (ExportResponse, error) {
+func (p *pluginImpl) Export(request ExportPluginRequest) (ExportResponse, error) {
+	commandName := request.Name
 	c, ok := p.commands[commandName]
 	if !ok {
 		return ExportResponse{}, fmt.Errorf("command %s not provided by this plugin", commandName)
 	}
 
-	return c.Export(request)
+	return c.Export(request.Request)
 }
 
 func (p *pluginImpl) Info() (PluginInformation, error) {
