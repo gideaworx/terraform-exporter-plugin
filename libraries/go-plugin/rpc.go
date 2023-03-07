@@ -11,13 +11,13 @@ type rpcPluginClient struct {
 }
 
 type exportPluginRequest struct {
-	name    string
-	request ExportRequest
+	Name    string
+	Request ExportRequest
 }
 
 func (p *rpcPluginClient) Export(name string, request ExportRequest) (ExportResponse, error) {
 	var resp ExportResponse
-	err := p.client.Call("Plugin.Export", exportPluginRequest{name, request}, &resp)
+	err := p.client.Call("Plugin.Export", exportPluginRequest{Name: name, Request: request}, &resp)
 	return resp, err
 }
 
