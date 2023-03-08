@@ -2,7 +2,9 @@ package plugin
 
 import (
 	"log"
+	"os"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
 )
 
@@ -32,6 +34,11 @@ func ServeCommands(version Version, protocol PluginProtocol, commands ...ExportC
 			Plugins: plugin.PluginSet{
 				"plugin": &RPCExportPlugin{Impl: impl},
 			},
+			Logger: hclog.New(&hclog.LoggerOptions{
+				Name:   "plugin",
+				Output: os.Stdout,
+				Level:  hclog.Debug,
+			}),
 		})
 	default:
 		log.Fatalf("unrecognized protocol %d", protocol)
