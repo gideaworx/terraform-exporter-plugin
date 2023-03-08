@@ -36,7 +36,7 @@ func ServeCommands(version Version, protocol PluginProtocol, commands ...ExportC
 			},
 			Logger: hclog.New(&hclog.LoggerOptions{
 				Name:   "plugin",
-				Output: os.Stdout,
+				Output: os.Stderr,
 				Level:  hclog.Debug,
 			}),
 		})
