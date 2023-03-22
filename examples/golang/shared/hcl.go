@@ -5,11 +5,13 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/gideaworx/terraform-exporter-plugin/libraries/go-plugin"
+	"github.com/gideaworx/terraform-exporter-plugin/go-plugin"
+	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/zclconf/go-cty/cty"
 )
@@ -21,8 +23,11 @@ const (
 	ContentsBase64
 )
 
-func writeHCL(sourceDir, sourceFile string, outputType OutputType, sensitive bool, outputDir string) (plugin.ImportDirective, error) {
+func writeHCL(log *log.Logger, sourceDir string, sourceFile string,
+	outputType OutputType, sensitive bool, outputDir string) (plugin.ImportDirective, error) {
 	hclwriter := hclwrite.NewEmptyFile()
+
+	log.Printf("writing %s to HCL", sourceFile)
 
 	contents, err := os.ReadFile(sourceFile)
 	if err != nil {
@@ -35,7 +40,8 @@ func writeHCL(sourceDir, sourceFile string, outputType OutputType, sensitive boo
 	}
 
 	idCalc := sha1.New()
-	idBytes := idCalc.Sum(contents)
+	idCalc.Write(contents)
+	idBytes := idCalc.Sum(nil)
 	id := hex.EncodeToString(idBytes)
 
 	contentAttr := "content"
@@ -47,14 +53,20 @@ func writeHCL(sourceDir, sourceFile string, outputType OutputType, sensitive boo
 		contents = encoded
 	}
 
+	rel, _ := hcl.RelTraversalForExpr(hcl.StaticExpr(cty.StringVal(strings.TrimPrefix(sourceFile, sourceDir)), hcl.Range{}))
+
 	resBlock := hclwriter.Body().AppendNewBlock("resource", []string{resType, filepath.Base(sourceFile)})
 	resBlock.Body().SetAttributeValue(contentAttr, cty.StringVal(string(contents)))
-	resBlock.Body().SetAttributeValue("filename", cty.StringVal(fmt.Sprintf("${var.outputDir}%s", strings.TrimPrefix(sourceFile, sourceDir))))
+	resBlock.Body().SetAttributeTraversal("t", hcl.TraversalJoin(hcl.Traversal{
+		hcl.TraverseRoot{Name: "var"},
+		hcl.TraverseAttr{Name: "outputDir"},
+	}, rel))
+	resBlock.Body().SetAttributeValue("filename", cty.StringVal(fmt.Sprintf("{var.outputDir}%s", strings.TrimPrefix(sourceFile, sourceDir))))
 	resBlock.Body().SetAttributeValue("directory_permission", cty.StringVal("0777"))
 	resBlock.Body().SetAttributeValue("file_permission", cty.StringVal("0666"))
 	resBlock.Body().SetAttributeValue("id", cty.StringVal(id))
 
-	outputFile, err := os.Create(filepath.Join(sourceDir, fmt.Sprintf("%s_%s.tf", resType, id)))
+	outputFile, err := os.Create(filepath.Join(outputDir, fmt.Sprintf("%s_%s.tf", resType, id)))
 	if err != nil {
 		return plugin.ImportDirective{}, err
 	}

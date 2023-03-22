@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/gideaworx/terraform-exporter-plugin/libraries/go-plugin"
+	"github.com/gideaworx/terraform-exporter-plugin/go-plugin"
 )
 
 var Version string = "0.0.1"
@@ -29,23 +29,38 @@ provider "local" {
 
 type LocalRawFilesCommand struct {
 	helpText string
+	logger   *log.Logger
 }
 
-func (l *LocalRawFilesCommand) Export(request plugin.ExportRequest) (plugin.ExportResponse, error) {
+func NewLocalRawFilesCommand(log *log.Logger) *LocalRawFilesCommand {
+	return &LocalRawFilesCommand{
+		logger: log,
+	}
+}
+
+func (l *LocalRawFilesCommand) Export(request plugin.ExportCommandRequest) (plugin.ExportResponse, error) {
+	l.logger.Println("hello world")
 	sourceDir, matchGlob, err := l.parseFlags(request.PluginArgs)
 	if err != nil {
+		l.logger.Println(err.Error())
 		return plugin.ExportResponse{}, err
 	}
+
+	l.logger.Println(sourceDir, matchGlob)
 
 	sourceAbs, err := filepath.Abs(sourceDir)
 	if err != nil {
 		return plugin.ExportResponse{}, err
 	}
 
+	pattern := filepath.Join(sourceAbs, matchGlob)
+	l.logger.Println(pattern)
 	matchingFiles, err := filepath.Glob(filepath.Join(sourceAbs, matchGlob))
 	if err != nil {
 		return plugin.ExportResponse{}, err
 	}
+
+	l.logger.Printf("%v", matchingFiles)
 
 	workQueue := make(chan string, len(matchingFiles))
 	wg := &sync.WaitGroup{}
@@ -62,7 +77,7 @@ func (l *LocalRawFilesCommand) Export(request plugin.ExportRequest) (plugin.Expo
 					break
 				}
 
-				d, err := writeHCL(sourceAbs, file, Contents, false, request.OutputDirectory)
+				d, err := writeHCL(l.logger, sourceAbs, file, Contents, false, request.OutputDirectory)
 				wg.Done()
 				if err != nil {
 					log.Println(err)
