@@ -11,15 +11,20 @@ ifeq (,$(POETRY))
 	$(error "poetry not found on $(PATH)")
 endif
 
-.PHONY: clean build generate prep
+.PHONY: clean build generate prep regenerate clean-gen
 
 DIST := dist
 SRC := src
 
-clean:
-	rm -fr $(DIST) $(SRC)/generated
+clean: regenerate
+	rm -fr $(DIST)
+
+clean-gen:
+	rm -fr $(SRC)/generated
 
 generate: $(SRC)/generated/%.py
+
+regenerate: clean-gen generate
 
 build: prep $(SRC)/generated/%.py $(DIST)/terraform_exporter_plugin-%-py3-none-any.whl
 
