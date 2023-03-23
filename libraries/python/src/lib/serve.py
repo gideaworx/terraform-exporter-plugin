@@ -21,9 +21,13 @@ REQUIRED_ENV_VARS = [
 
 
 def validatePreconditions() -> None:
+    """
+    Ensures that environment variables that are set by the terraform-exporter
+    CLI are present and set to the correct value.
+    """
     for name in REQUIRED_ENV_VARS:
         if os.getenv(name) is None:
-            raise f"Required environmnet variable {name} is not present"
+            raise f"This application is designed to be started indirectly by the terraform-exporter CLI. Environment variables it sets are missing"
 
     if os.getenv(MAGIC_COOKIE_NAME) != MAGIC_COOKIE_VALUE:
         raise f"Environment variable {MAGIC_COOKIE_NAME} does not equal expected value {MAGIC_COOKIE_VALUE}"

@@ -20,7 +20,16 @@ class ExportCommand(object):
 
 
 class ExportPlugin(ExportPluginServicer):
+    """
+    A class used by the GRPC Server to handle requests from the CLI. This is 
+    instantiated in the ServePlugin method and only used in the server, so 
+    it is not necessary to be instantiated by an end user
+    """
     def __init__(self, pluginVersion: Version, *args: ExportCommand) -> None:
+        """
+        Stores the plugin version and the list of ExportCommand instances the
+        plugin knows about
+        """
         super().__init__()
         self.pluginVersion = pluginVersion
         self.commands = dict[str, ExportCommand]()
@@ -28,6 +37,9 @@ class ExportPlugin(ExportPluginServicer):
             self.commands[cmd.Info().Name] = cmd
 
     def Export(self, request: PluginRequest, context) -> ExportResponse:
+        """
+        Delegates the export request to the command named in the request 
+        """
         if request.Name in self.commands:
             return self.commands[request.Name].Export(request.Request)
 

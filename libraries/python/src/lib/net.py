@@ -7,6 +7,9 @@ from collections import namedtuple
 addrinfo = namedtuple('addrinfo', ['family', 'address'])
 
 def build_tcp() -> addrinfo:
+    """
+    Finds an open TCP port on localhost
+    """
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
         s.bind(('', 0))
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -14,6 +17,10 @@ def build_tcp() -> addrinfo:
         return addrinfo("tcp", f"127.0.0.1:{port}")
 
 def build_uds() -> addrinfo:
+    """
+    Creates a UNIX domain socket for communication betwen the CLI and the
+    plugin
+    """
     tf = tempfile.mkstemp(dir=tempfile.gettempdir())
     filename = tf[1]
     os.unlink(filename)
@@ -22,6 +29,13 @@ def build_uds() -> addrinfo:
     return addrinfo("unix", f"unix://{filename}")
 
 def get_listener() -> addrinfo:
+    """
+    Gets info about an open listener on localhost for communications between
+    the CLI and the plugin. For performance and reliability, it prefers to 
+    create a UNIX domain socket. If one cannot be created for any reason (e.g.
+    the OS doesn't support them or the calling user does not have permissions
+    to create one), it returns TCP connection info instead
+    """
     try:
         return build_uds()
     except BaseException as e:

@@ -1,4 +1,0 @@
-grpcio-tools
-grpcio-health-checking
-semver>=2.13
-futures
