@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "terraform-exporter-plugin"
-version = "0.1.0"
+version = "0.2.0"
 description = "Python module for creating terraform-exporter plugins"
 readme = "README.md"
 authors = [
@@ -13,11 +13,11 @@ authors = [
 maintainers = [
   "Josh Ghiloni <ghiloni@gmail.com>"
 ]
-packages = [{include = "src"}]
+packages = [{include = "terraform_exporter_plugin"}]
 
 [tool.poetry.dependencies]
 python = ">=3.10"
 grpcio-tools = "^1.51"
 grpcio-health-checking = "^1.51"
 
-[tool.poetry_bumpversion.file."src/__init__.py"]
+[tool.poetry_bumpversion.file."terraform_exporter_plugin/__init__.py"]

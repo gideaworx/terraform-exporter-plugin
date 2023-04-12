@@ -14,7 +14,7 @@ endif
 .PHONY: clean build generate prep regenerate clean-gen
 
 DIST := dist
-SRC := src
+SRC := terraform_exporter_plugin
 
 clean: regenerate
 	rm -fr $(DIST)

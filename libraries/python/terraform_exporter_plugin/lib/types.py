@@ -12,7 +12,7 @@ class ExportCommand(object):
     def Export(self, request: ExportRequest) -> ExportResponse:
         raise "Not Implemented"
 
-    def Help(self, commandName: str) -> str:
+    def Help(self) -> str:
         raise "Not Implemented"
 
     def Info(self) -> CommandInfo:
@@ -51,6 +51,6 @@ class ExportPlugin(ExportPluginServicer):
 
     def Help(self, request: SingleString, context) -> SingleString:
         if request.Value in self.commands:
-            return SingleString(Value=self.commands[request.Value].Help(request.Value))
+            return SingleString(Value=self.commands[request.Value].Help())
 
         raise f"Command {request.Value} not found"
