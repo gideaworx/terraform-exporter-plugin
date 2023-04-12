@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -9,6 +10,8 @@ import (
 	"github.com/gideaworx/terraform-exporter-plugin/go-plugin/proto"
 	"github.com/hashicorp/go-plugin"
 )
+
+var ErrSomeExportsFailed = errors.New("some exports failed")
 
 type CommandInfo struct {
 	Name        string
