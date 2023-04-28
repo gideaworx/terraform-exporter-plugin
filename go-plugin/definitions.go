@@ -50,7 +50,7 @@ type Version struct {
 func (v Version) String() string {
 	s := &semver.Version{
 		Major: v.Major,
-		Minor: v.Major,
+		Minor: v.Minor,
 		Patch: v.Patch,
 	}
 
